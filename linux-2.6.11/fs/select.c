@@ -115,6 +115,8 @@ void __pollwait(struct file *filp, wait_queue_head_t *wait_address, poll_table *
 	 	entry->filp = filp;
 		entry->wait_address = wait_address;
 		init_waitqueue_entry(&entry->wait, current);
+
+		 // 新添加的进程添加到设备事件触发等待队列
 		add_wait_queue(wait_address,&entry->wait);
 	}
 }
@@ -224,17 +226,25 @@ int do_select(int n, fd_set_bits *fds, long *timeout)
 				if (file) {
 					f_op = file->f_op;
 					mask = DEFAULT_POLLMASK;
+
+					// 这里会调用 struct file*实现的poll函数进行轮询
 					if (f_op && f_op->poll)
 						mask = (*f_op->poll)(file, retval ? NULL : wait);
 					fput(file);
+
+					// 根据查询返回掩码确定是否有可读数据
 					if ((mask & POLLIN_SET) && (in & bit)) {
 						res_in |= bit;
 						retval++;
 					}
+
+					// 根据查询返回掩码确定是否可写
 					if ((mask & POLLOUT_SET) && (out & bit)) {
 						res_out |= bit;
 						retval++;
 					}
+
+					// 根据查询返回掩码确定是否有异常
 					if ((mask & POLLEX_SET) && (ex & bit)) {
 						res_ex |= bit;
 						retval++;

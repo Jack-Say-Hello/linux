@@ -235,12 +235,15 @@ struct eppoll_entry {
  */
 struct epitem {
 	/* RB-Tree node used to link this structure to the eventpoll rb-tree */
+	//红黑树节点
 	struct rb_node rbn;
 
 	/* List header used to link this structure to the eventpoll ready list */
+	//双向链表节点
 	struct list_head rdllink;
 
 	/* The file descriptor information this item refers to */
+	//事件句柄信息
 	struct epoll_filefd ffd;
 
 	/* Number of active wait queue attached to poll operations */
@@ -250,9 +253,11 @@ struct epitem {
 	struct list_head pwqlist;
 
 	/* The "container" of this item */
+	//指向其所属的eventpoll对象
 	struct eventpoll *ep;
 
 	/* The structure that describe the interested events and the source fd */
+	//期待发生的事件类型
 	struct epoll_event event;
 
 	/*
@@ -1629,4 +1634,10 @@ static void __exit eventpoll_exit(void)
 	unregister_filesystem(&eventpoll_fs_type);
 	mntput(eventpoll_mnt);
 	kmem_cache_destroy(pwq_cache);
-	kmem_cache_destroy(epi_c
+	kmem_cache_destroy(epi_cache);
+}
+
+module_init(eventpoll_init);
+module_exit(eventpoll_exit);
+
+MODULE_LICENSE("GPL");
